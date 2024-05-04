@@ -42,30 +42,43 @@ class DataSaver {
 
 					$point = $existingPoint;
 				}
+				// Save opening hours
 				foreach ($point->getOpeningHours() as $openingHour) {
 					if (!$openingHour instanceof OpeningHours) {
 						continue;
 					}
 					$key = $openingHour->getKey();
+					// Check if opening hour already exists
 					if (!isset($this->openingHoursCache[$key])){
 						$found = $this->em->getRepository(OpeningHours::class)->findOneBy([
-							'open_from' => $openingHour->getOpenFrom(),
-							'open_to' => $openingHour->getOpenTo(),
-							'hours' => $openingHour->getHours(),
+							'dayFrom' => $openingHour->getDayFrom(),
+							'dayTo' => $openingHour->getDayTo(),
+							'timeFrom' => $openingHour->getTimeFrom(),
+							'timeTo' => $openingHour->getTimeTo(),
 						]);
+						// If found, set it to cache
 						if ($found) {
 							$this->openingHoursCache[$key] = $found;
 						}
 					}
-					$existingOpeningHour = $this->openingHoursCache[$key];
-					$this->em->persist($existingOpeningHour);
-					$this->openingHoursCache[$key] = $existingOpeningHour;
+					// If opening hour already exists, remove the new one and add the existing one
+					$existingOpeningHour = $this->openingHoursCache[$key] ?? null;
+					// If opening hour is not in cache, add it to cache
+					if ($existingOpeningHour) {
+						$point->removeOpeningHour($openingHour);
+						$point->addOpeningHour($existingOpeningHour);
+					} else {
+						// If opening hour is not in cache, add it to cache and persist it
+						$this->em->persist($openingHour);
+						$this->openingHoursCache[$key] = $openingHour;
+					}
 				}
 
+				// Persist point
 				$this->em->persist($point);
-				$this->em->flush();
 			}
 		}
+		// Flush changes
 		$this->em->flush();
 	}
 }

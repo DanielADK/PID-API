@@ -2,10 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\OpeningHours;
+use App\Repository\OpeningHoursRepository;
 use App\Service\DataFetcher;
 use App\Service\DataSaver;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -23,4 +26,14 @@ class PointController extends AbstractController {
 
 		return $this->json(["status" => "success"]);
 	}
+
+	#[Route(path: "/open", name: "open")]
+	public function getOpenedPoints(Request $request, OpeningHoursRepository $openingHoursRepository): JsonResponse {
+		$time = $request->query->get("time", date("H:i"));
+		$date = $request->query->get("date", date("Y-m-d"));
+
+		$openingHours = $openingHoursRepository->findOpenAt($time, $date);
+		return $this->json($openedPoints);
+	}
+
 }

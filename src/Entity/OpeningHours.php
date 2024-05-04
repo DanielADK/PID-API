@@ -4,20 +4,23 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\OpeningHoursRepository;
 
 #[ORM\Entity]
-#[ORM\UniqueConstraint(name: 'openinghoursIdx', columns: ["open_from", "open_to", "hours"])]
+#[ORM\UniqueConstraint(name: 'openinghoursIdx', columns: ["day_from", "day_to", "time_from", "time_to"])]
 class OpeningHours {
 	#[ORM\Id]
-	#[ORM\Column(type: "integer")]
+	#[ORM\Column(type: "integer", nullable: false)]
 	#[ORM\GeneratedValue]
 	private int $id;
-	#[ORM\Column(type: "integer")]
-	private int $open_from;
-	#[ORM\Column(type: "integer")]
-	private int $open_to;
-	#[ORM\Column(type: "string")]
-	private string $hours;
+	#[ORM\Column(name: "day_from", type: "integer", nullable: false)]
+	private int $dayFrom;
+	#[ORM\Column(name: "day_to", type: "integer", nullable: false)]
+	private int $dayTo;
+	#[ORM\Column(name: "time_from", type: "time", nullable: false)]
+	private \DateTimeInterface $timeFrom;
+	#[ORM\Column(name: "time_to", type: "time", nullable: false)]
+	private \DateTimeInterface $timeTo;
 	/** @var Collection<string, PointOfSale> */
 	#[ORM\ManyToMany(targetEntity: PointOfSale::class, mappedBy: "openingHours", cascade: ["persist"])]
 	private Collection $pointOfSales;
@@ -26,35 +29,44 @@ class OpeningHours {
 		$this->pointOfSales = new ArrayCollection();
 	}
 
-	public function getId(): string {
+	public function getId(): int {
 		return $this->id;
 	}
 
-	public function setOpenFrom(int $open_from): OpeningHours {
-		$this->open_from = $open_from;
+	public function setDayFrom(int $dayFrom): OpeningHours {
+		$this->dayFrom = $dayFrom;
 		return $this;
 	}
 
-	public function getOpenFrom(): int {
-		return $this->open_from;
+	public function getDayFrom(): int {
+		return $this->dayFrom;
 	}
 
-	public function setOpenTo(int $open_to): OpeningHours {
-		$this->open_to = $open_to;
+	public function setDayTo(int $dayTo): OpeningHours {
+		$this->dayTo = $dayTo;
 		return $this;
 	}
 
-	public function getOpenTo(): int {
-		return $this->open_to;
+	public function getDayTo(): int {
+		return $this->dayTo;
 	}
 
-	public function setHours(string $hours): OpeningHours {
-		$this->hours = $hours;
+	public function setTimeFrom(\DateTimeInterface $timeFrom): OpeningHours {
+		$this->timeFrom = $timeFrom;
 		return $this;
 	}
 
-	public function getHours(): string {
-		return $this->hours;
+	public function getTimeFrom(): \DateTimeInterface {
+		return $this->timeFrom;
+	}
+
+	public function setTimeTo(\DateTimeInterface $timeTo): OpeningHours {
+		$this->timeTo = $timeTo;
+		return $this;
+	}
+
+	public function getTimeTo(): \DateTimeInterface {
+		return $this->timeTo;
 	}
 
 	/**
@@ -70,7 +82,7 @@ class OpeningHours {
 	 * @return string
 	 */
 	public function getKey(): string {
-		return $this->open_from . $this->open_to . $this->hours;
+		return $this->dayFrom . $this->dayTo . $this->timeFrom->format("H:i") . $this->timeTo->format("H:i");
 	}
 
 	/**
@@ -104,6 +116,6 @@ class OpeningHours {
 	}
 
 	public function __toString(): string {
-		return $this->id ?? "null" . $this->open_from . " - " . $this->open_to . " - " . $this->hours;
+		return $this->dayFrom . " - " . $this->dayTo . " - " . $this->timeFrom->format("H:i") . " - " . $this->timeTo->format("H:i");
 	}
 }

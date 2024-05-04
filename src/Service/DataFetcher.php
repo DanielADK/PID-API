@@ -19,9 +19,11 @@ class DataFetcher {
 
 	/**
 	 * @description Fetch data from endpoint
+	 *
 	 * @param string $endpoint
 	 *
 	 * @return array<PointOfSale>
+	 * @throws \Exception
 	 */
 	public function fetchData(string $endpoint): array {
 		try {
@@ -37,6 +39,18 @@ class DataFetcher {
 
 		$pointsOfSale = array();
 		foreach($data as $item) {
+			// Check if all required fields are present
+			if (!is_array($item) ||
+				!isset($item["id"]) ||
+				!isset($item["type"]) ||
+				!isset($item["name"]) ||
+				!isset($item["lat"]) ||
+				!isset($item["lon"]) ||
+				!isset($item["services"]) ||
+				!isset($item["payMethods"]) ||
+				!isset($item["openingHours"])) {
+				continue;
+			}
 			// Point of sale
 			$pointOfSale = (new PointOfSale())
 				->setId($item["id"])
@@ -49,14 +63,34 @@ class DataFetcher {
 				->setPayMethods($item["payMethods"]);
 
 			foreach ($item["openingHours"] as $openingHour) {
-				if (!isset($openingHour["from"]) || !isset($openingHour["to"]) || !isset($openingHour["hours"])) {
+				// Check if all required fields are present
+				if (!is_array($openingHour) ||
+					!is_numeric($openingHour["from"]) ||
+					!is_numeric($openingHour["to"]) ||
+					!isset($openingHour["hours"])) {
 					continue;
 				}
-				$openingHour = (new OpeningHours())
-					->setOpenFrom($openingHour["from"])
-					->setOpenTo($openingHour["to"])
-					->setHours($openingHour["hours"]);
-				$pointOfSale->addOpeningHour($openingHour);
+				// from and to set to integer
+				$openingHour["from"] = (int) $openingHour["from"];
+				$openingHour["to"] = (int) $openingHour["to"];
+
+				// Parse hours to single ranges in hours
+				$timeRanges = explode(",", $openingHour["hours"]);
+				foreach ($timeRanges as $timeRange) {
+					// Get first and last hour
+					$fromto = explode("-", $timeRange);
+					if (count($fromto) !== 2) {
+						continue;
+					}
+					// Create opening hour object
+					$openingHourObject = (new OpeningHours())
+						->setDayFrom($openingHour["from"])
+						->setDayTo($openingHour["to"])
+						->setTimeFrom(new \DateTime($fromto[0]))
+						->setTimeTo(new \DateTime($fromto[1]));
+					// Add opening hour to point of sale
+					$pointOfSale->addOpeningHour($openingHourObject);
+				}
 			}
 
 			$pointsOfSale[] = $pointOfSale;
