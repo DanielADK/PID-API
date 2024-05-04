@@ -5,8 +5,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\MaxDepth;
+use App\Repository\PointOfSaleRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: PointOfSaleRepository::class)]
 class PointOfSale {
 	#[ORM\Id]
 	#[ORM\Column(type: "string", nullable: false)]

@@ -2,18 +2,15 @@
 
 namespace App\Controller;
 
+use App\Entity\PointOfSale;
 use App\Repository\OpeningHoursRepository;
+use App\Repository\PointOfSaleRepository;
 use App\Service\DataFetcher;
 use App\Service\DataSaver;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route(path: "/api/point", name: "point_")]
 class PointController extends AbstractController {
@@ -26,8 +23,17 @@ class PointController extends AbstractController {
 		return $this->json(["status" => "success"]);
 	}
 
+	#[Route(path: "/", name: "all")]
+	public function getAllPoints(PointOfSaleRepository $openingHoursRepository): JsonResponse {
+		$points = $openingHoursRepository->findAll();
+
+		// Serialize to custom format
+		$customFormat = self::customSerializerPreprocessor($points);
+		return $this->json($customFormat);
+	}
+
 	#[Route(path: "/opened", name: "opened")]
-	public function getOpenedPoints(Request $request, OpeningHoursRepository $openingHoursRepository, SerializerInterface $serializer): JsonResponse {
+	public function getOpenedPoints(Request $request, OpeningHoursRepository $openingHoursRepository): JsonResponse {
 		$time = $request->query->get("time", date("H:i"));
 		// If time is not set, use current time
 		if (!$time) {
@@ -51,8 +57,21 @@ class PointController extends AbstractController {
 		$openingHours = $openingHoursRepository->findOpenAt($time, $date);
 
 		// Serialize to custom format
+		$customFormat = self::customSerializerPreprocessor($openingHours);
+		return $this->json($customFormat);
+	}
+
+
+	/**
+	 * @description Custom serializer for PointOfSale
+	 *
+	 * @param array<PointOfSale> $points
+	 *
+	 * @return array
+	 */
+	private static function customSerializerPreprocessor(array $points): array {
 		$customFormat = array();
-		foreach($openingHours as $oh) {
+		foreach($points as $oh) {
 			// Serialize PointOfSale
 			$customFormat[] = [
 				"id" => $oh->getId(),
@@ -77,7 +96,7 @@ class PointController extends AbstractController {
 				$customFormat["link"] = $oh->getLink();
 			}
 		}
-		return $this->json($customFormat);
+		return $customFormat;
 	}
 
 }
