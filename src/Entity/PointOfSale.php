@@ -16,6 +16,7 @@ class PointOfSale {
 	private string $name;
 	#[ORM\Column(type: "string", nullable: true)]
 	private string|null $address;
+	/** @var Collection<string, OpeningHours> */
 	#[ORM\ManyToMany(targetEntity: OpeningHours::class, inversedBy: "pointOfSales")]
 	private Collection $openingHours;
 	#[ORM\Column(type: "float", nullable: false)]
@@ -114,23 +115,40 @@ class PointOfSale {
 		return $this->link;
 	}
 
+	/**
+	 * @description Add opening hour to point of sale if not already present
+	 * @param OpeningHours $oh
+	 * @return $this
+	 */
 	public function addOpeningHour(OpeningHours $oh): self {
-		if (!$this->openingHours->contains($oh)) {
-			$this->openingHours->add($oh);
+		// Key for O(1) lookup
+		$key = $oh->getKey();
+		if (!isset($this->openingHours[$key])) {
+			$this->openingHours[$key] = $oh;
 			$oh->addPointOfSale($this);
 		}
 		return $this;
 	}
 
+	/**
+	 * @description Remove opening hour from point of sale if present
+	 * @param OpeningHours $oh
+	 * @return $this
+	 */
 	public function removeOpeningHour(OpeningHours $oh) : self {
-		if ($this->openingHours->contains($oh)) {
-			$this->openingHours->removeElement($oh);
+		// Key for O(1) lookup
+		$key = $oh->getKey();
+		if (isset($this->openingHours[$key])) {
+			unset($this->openingHours[$key]);
 			$oh->removePointOfSale($this);
 		}
 		return $this;
 	}
 
-
+	/**
+	 * @description Get all opening hours
+	 * @return Collection<string, OpeningHours>
+	 */
 	public function getOpeningHours(): Collection {
 		return $this->openingHours;
 	}

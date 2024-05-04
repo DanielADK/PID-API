@@ -60,6 +60,20 @@ class OpeningHours {
 		return $this->pointOfSales;
 	}
 
+	/**
+	 * @description Returns a unique key for the object
+	 * @return string
+	 */
+	public function getKey(): string {
+		return $this->open_from . $this->open_to . $this->hours;
+	}
+
+	/**
+	 *
+	 * @param PointOfSale $pos
+	 *
+	 * @return $this
+	 */
 	public function addPointOfSale(PointOfSale $pos): self {
 		if (!$this->pointOfSales->contains($pos)) {
 			$this->pointOfSales[] = $pos;
