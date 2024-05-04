@@ -4,6 +4,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\MaxDepth;
 
 #[ORM\Entity]
 class PointOfSale {
@@ -15,9 +16,10 @@ class PointOfSale {
 	#[ORM\Column(type: "string", nullable: false)]
 	private string $name;
 	#[ORM\Column(type: "string", nullable: true)]
-	private string|null $address;
+	private ?string $address;
 	/** @var Collection<string, OpeningHours> */
 	#[ORM\ManyToMany(targetEntity: OpeningHours::class, inversedBy: "pointOfSales")]
+	#[MaxDepth(1)]
 	private Collection $openingHours;
 	#[ORM\Column(type: "float", nullable: false)]
 	private float $latitude;
@@ -28,7 +30,7 @@ class PointOfSale {
 	#[ORM\Column(type: "integer", nullable: false)]
 	private int $payMethods;
 	#[ORM\Column(type: "string", nullable: true)]
-	private string $link;
+	private ?string $link;
 
 	public function __construct() {
 		$this->openingHours = new ArrayCollection();
@@ -111,7 +113,7 @@ class PointOfSale {
 		return $this;
 	}
 
-	public function getLink(): string {
+	public function getLink(): ?string {
 		return $this->link;
 	}
 

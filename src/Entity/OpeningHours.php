@@ -6,7 +6,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\OpeningHoursRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: OpeningHoursRepository::class)]
 #[ORM\UniqueConstraint(name: 'openinghoursIdx', columns: ["day_from", "day_to", "time_from", "time_to"])]
 class OpeningHours {
 	#[ORM\Id]
