@@ -12,6 +12,13 @@ The PID API is a web service that provides access to data about stores and their
 - Parameters: None
 - Example of use: `curl http://localhost/api/point/fetch`
 
+### `/api/point/`
+
+- Method: `GET`
+- Description: Returns a list of all stores.
+- Parameters: None
+- Example use: `curl "http://localhost/api/point/"`
+
 ### `/api/point/opened`
 
 - Method: `GET`
