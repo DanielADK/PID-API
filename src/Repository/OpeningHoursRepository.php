@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\OpeningHours;
 use App\Entity\PointOfSale;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\EntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 class OpeningHoursRepository extends ServiceEntityRepository {
