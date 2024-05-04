@@ -1,7 +1,6 @@
 create table if not exists opening_hours
 (
     id        int auto_increment
-        constraint `PRIMARY`
         primary key,
     day_from  int  not null,
     day_to    int  not null,
@@ -15,7 +14,6 @@ create table if not exists opening_hours
 create table if not exists point_of_sale
 (
     id          varchar(255) not null
-        constraint `PRIMARY`
         primary key,
     type        varchar(255) not null,
     name        varchar(255) not null,
@@ -32,8 +30,7 @@ create table if not exists point_of_sale_opening_hours
 (
     point_of_sale_id varchar(255) not null,
     opening_hours_id int          not null,
-    constraint `PRIMARY`
-        primary key (point_of_sale_id, opening_hours_id),
+    primary key (point_of_sale_id, opening_hours_id),
     constraint FK_E42839DC6B7E9A73
         foreign key (point_of_sale_id) references point_of_sale (id)
             on delete cascade,
