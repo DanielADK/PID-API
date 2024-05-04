@@ -18,6 +18,7 @@ class OpeningHours {
 	private int $open_to;
 	#[ORM\Column(type: "string")]
 	private string $hours;
+	/** @var Collection<string, PointOfSale> */
 	#[ORM\ManyToMany(targetEntity: PointOfSale::class, mappedBy: "openingHours", cascade: ["persist"])]
 	private Collection $pointOfSales;
 
@@ -56,6 +57,10 @@ class OpeningHours {
 		return $this->hours;
 	}
 
+	/**
+	 * @description Returns collection of point of sales
+	 * @return Collection<string, PointOfSale>
+	 */
 	public function getPointOfSales(): Collection {
 		return $this->pointOfSales;
 	}
@@ -69,22 +74,30 @@ class OpeningHours {
 	}
 
 	/**
-	 *
+	 * @description Add point of sale to opening hours
 	 * @param PointOfSale $pos
-	 *
 	 * @return $this
 	 */
 	public function addPointOfSale(PointOfSale $pos): self {
-		if (!$this->pointOfSales->contains($pos)) {
-			$this->pointOfSales[] = $pos;
+		// Id key for O(1) lookup
+		$key = $pos->getId();
+		if (!isset($this->pointOfSales[$key])) {
+			$this->pointOfSales[$key] = $pos;
 			$pos->addOpeningHour($this);
 		}
 		return $this;
 	}
 
+	/**
+	 * @description Remove point of sale from opening hours
+	 * @param PointOfSale $pos
+	 * @return $this
+	 */
 	public function removePointOfSale(PointOfSale $pos): self {
-		if ($this->pointOfSales->contains($pos)) {
-			$this->pointOfSales->removeElement($pos);
+		// Id key for O(1) lookup
+		$key = $pos->getId();
+		if (isset($this->pointOfSales[$key])) {
+			unset($this->pointOfSales[$key]);
 			$pos->removeOpeningHour($this);
 		}
 		return $this;
