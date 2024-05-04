@@ -26,11 +26,8 @@ class PointController extends AbstractController {
 		return $this->json(["status" => "success"]);
 	}
 
-	#[Route(path: "/open", name: "open")]
+	#[Route(path: "/opened", name: "opened")]
 	public function getOpenedPoints(Request $request, OpeningHoursRepository $openingHoursRepository, SerializerInterface $serializer): JsonResponse {
-		// Get OpeningHoursRepository
-
-
 		$time = $request->query->get("time", date("H:i"));
 		// If time is not set, use current time
 		if (!$time) {
