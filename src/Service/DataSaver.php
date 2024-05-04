@@ -9,14 +9,16 @@ use Symfony\Contracts\Cache\CacheInterface;
 
 class DataSaver {
 	private EntityManagerInterface $em;
+	/** @var array<string, OpeningHours> */
 	private array $openingHoursCache;
 
-	public function __construct(EntityManagerInterface $em, CacheInterface $cache) {
+	public function __construct(EntityManagerInterface $em) {
 		$this->em = $em;
 		$this->openingHoursCache = array();
 	}
 
 	/**
+	 * @description Save data to database
 	 * @param array<PointOfSale> $data
 	 *
 	 * @return void
@@ -24,11 +26,12 @@ class DataSaver {
 	public function saveData(array $data): void {
 		foreach ($data as $point) {
 			if ($point instanceof PointOfSale) {
+				// Check if point already exists
 				$existingPoint = $this->em->getRepository(PointOfSale::class)->findOneBy([
 					'id' => $point->getId(),
 				]);
 				if ($existingPoint) {
-					// Write changes to existing and set $point to existing one
+					// update changes to existing and set $point to existing one
 					$existingPoint->setType($point->getType());
 					$existingPoint->setName($point->getName());
 					$existingPoint->setAddress($point->getAddress());
@@ -40,23 +43,23 @@ class DataSaver {
 					$point = $existingPoint;
 				}
 				foreach ($point->getOpeningHours() as $openingHour) {
-					$key = $openingHour->getOpenFrom() . $openingHour->getOpenTo() . $openingHour->getHours();
-					if (!isset($this->openingHoursCache[$key])) {
-						$this->openingHoursCache[$key] = $this->em->getRepository(OpeningHours::class)->findOneBy([
+					if (!$openingHour instanceof OpeningHours) {
+						continue;
+					}
+					$key = $openingHour->getKey();
+					if (!isset($this->openingHoursCache[$key])){
+						$found = $this->em->getRepository(OpeningHours::class)->findOneBy([
 							'open_from' => $openingHour->getOpenFrom(),
 							'open_to' => $openingHour->getOpenTo(),
 							'hours' => $openingHour->getHours(),
 						]);
+						if ($found) {
+							$this->openingHoursCache[$key] = $found;
+						}
 					}
 					$existingOpeningHour = $this->openingHoursCache[$key];
-
-					if ($existingOpeningHour) {
-						$point->removeOpeningHour($openingHour);
-						$point->addOpeningHour($existingOpeningHour);
-					} else {
-						$this->em->persist($openingHour);
-						$this->openingHoursCache[$key] = $openingHour;
-					}
+					$this->em->persist($existingOpeningHour);
+					$this->openingHoursCache[$key] = $existingOpeningHour;
 				}
 
 				$this->em->persist($point);

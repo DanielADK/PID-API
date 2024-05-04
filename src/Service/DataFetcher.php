@@ -17,6 +17,12 @@ class DataFetcher {
 		$this->client = $client;
 	}
 
+	/**
+	 * @description Fetch data from endpoint
+	 * @param string $endpoint
+	 *
+	 * @return array<PointOfSale>
+	 */
 	public function fetchData(string $endpoint): array {
 		try {
 			$response = $this->client->request(
